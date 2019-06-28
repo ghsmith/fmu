@@ -1,4 +1,4 @@
-package gsmith.tech.fmu;
+package tech.gsmith.fmu;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,7 +22,7 @@ import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.RequestEntityProcessing;
 
-public class Download1 {
+public class Download {
 
     public static class Cred {
         public String email;
@@ -196,7 +196,9 @@ public class Download1 {
                         table2.println();
                         table2.flush();
                     }
+                    
                 }
+                
             }
 
         }
