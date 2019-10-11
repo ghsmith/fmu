@@ -75,7 +75,8 @@ public class Download {
         
         ObjectMapper mapper = new ObjectMapper();
         F f = mapper.readValue(new File(args[0]), F.class);
-
+        F f_exclude = mapper.readValue(new File(args[1]), F.class);
+        
         table1.println(String.format(
             "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s",
             "accNo",
@@ -109,6 +110,11 @@ public class Download {
                 continue;
             }
 
+            if(f_exclude.reports.stream().filter(r -> (r.trf.equals(report.trf))).findAny().isPresent()) {
+                System.err.println(String.format("skipping %s", report.trf));
+                continue;
+            }
+            
             String accNo;
             
             {
