@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.sql.Connection;
@@ -14,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -46,8 +48,16 @@ public class MergeWithCp {
 
     public static void main(String[] args) throws IOException, InterruptedException, ClassNotFoundException, SQLException {
 
+        Properties priv = new Properties();
+        try(InputStream inputStream = MergeWithCp.class.getClassLoader().getResourceAsStream("private.properties")) {
+            priv.load(inputStream);
+        }
+        
         Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-        Connection conn = DriverManager.getConnection("***");
+
+        Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+        Connection conn = DriverManager.getConnection(priv.getProperty("connCoPath.url"));
+        
         CaseAttributesFinder caf = new CaseAttributesFinder(conn);
         
         PrintWriter table1 = new PrintWriter(new File("table1.tsv"));
@@ -57,10 +67,13 @@ public class MergeWithCp {
         F f = mapper.readValue(new File(args[0]), F.class);
 
         table1.println(String.format(
-            "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s",
+            "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s",
             "ehcCase",
             "mrn",
+            "empi",
             "accNo",
+            "cmp26",
+            "mmp75",
             "trf",
             "date",
             "d",
@@ -125,10 +138,6 @@ public class MergeWithCp {
             if(ca != null && ca.lastName != null && report.pL != null) {
                 ehcCase = ca.lastName.toUpperCase().trim().replaceAll(" ", "").equals(report.pL.toUpperCase().trim().replaceAll(" ", ""));
             }
-            String mrn = null;
-            if(ca != null) {
-                mrn = ca.mrn;
-            }
             
             System.err.println(String.format("[%05d] %s %s '%s'=='%s' --> %s", ++count, report.trf, accNo, report.pL, ca != null ? ca.lastName : "case-not-found", ehcCase));
 
@@ -176,10 +185,13 @@ public class MergeWithCp {
             }
 
             table1.print(String.format(
-                "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%d\t%d",
+                "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%d\t%d",
                 ehcCase,
-                mrn,
+                ehcCase ? ca.mrn : "",
+                ehcCase ? ca.empi : "",
                 accNo,
+                ehcCase ? ca.cmp26 : "",
+                ehcCase ? ca.mmp75 : "",
                 report.trf,
                 report.dateAndTime.substring(0, 10),
                 report.d,
@@ -209,10 +221,13 @@ public class MergeWithCp {
                 for(Gene gene : report.genes) {
                     for(String alteration : gene.alterations) {
                         table2.print(String.format(
-                            "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%d\t%d\t%s\t%s",
+                            "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%d\t%d\t%s\t%s",
                             ehcCase,
-                            mrn,
+                            ehcCase ? ca.mrn : "",
+                            ehcCase ? ca.empi : "",
                             accNo,
+                            ehcCase ? ca.cmp26 : "",
+                            ehcCase ? ca.mmp75 : "",
                             report.trf,
                             report.dateAndTime.substring(0, 10),
                             report.d,

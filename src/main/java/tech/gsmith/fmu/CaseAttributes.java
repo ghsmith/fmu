@@ -18,6 +18,8 @@ public class CaseAttributes {
     public String orderingProviderFirstName;
     public String client;
     public String empi;
+    public Boolean cmp26;
+    public Boolean mmp75;
 
     public CaseAttributes() {
     }
@@ -37,6 +39,8 @@ public class CaseAttributes {
         this.orderingProviderFirstName = rs.getString("ordering_provider_firstname");
         this.client = rs.getString("client");
         this.empi = rs.getString("empi");
+        this.cmp26 = rs.getString("cmp26") != null && rs.getString("cmp26").equals("Y");
+        this.mmp75 = rs.getString("mmp75") != null && rs.getString("mmp75").equals("Y");
     }
 
     @Override
