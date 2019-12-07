@@ -54,8 +54,6 @@ public class MergeWithCp {
         }
         
         Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-
-        Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
         Connection conn = DriverManager.getConnection(priv.getProperty("connCoPath.url"));
         
         CaseAttributesFinder caf = new CaseAttributesFinder(conn);
