@@ -51,23 +51,28 @@ public class ResolveToHgvsp {
     }
     
     public static String getHgvsp(String hgvsc) {
-        List<VEP> veps = client
-            .target(String.format("https://grch37.rest.ensembl.org/vep/human/hgvs/%s?canonical=1&hgvs=1&content-type=application/json", hgvsc))
-            .request(MediaType.APPLICATION_JSON)
-            .get(new GenericType<List<VEP>>(){});
-        for(VEP vep : veps) {
-            for(TC tc : vep.transcript_consequences) {
-                if("1".equals(tc.canonical)) {
-                    if(tc.hgvsp != null && tc.hgvsp.matches("^.*:p.*$")) {
-                        return hgvsc.replaceAll(":.*$", "") + ":" + tc.hgvsp.replaceAll("^.*:", "");
-                    }
-                    else {
-                        return hgvsc;
+        try {
+            List<VEP> veps = client
+                .target(String.format("https://grch37.rest.ensembl.org/vep/human/hgvs/%s?canonical=1&hgvs=1&content-type=application/json", hgvsc))
+                .request(MediaType.APPLICATION_JSON)
+                .get(new GenericType<List<VEP>>(){});
+            for(VEP vep : veps) {
+                for(TC tc : vep.transcript_consequences) {
+                    if("1".equals(tc.canonical)) {
+                        if(tc.hgvsp != null && tc.hgvsp.matches("^.*:p.*$")) {
+                            return hgvsc.replaceAll(":.*$", "") + ":" + tc.hgvsp.replaceAll("^.*:", "");
+                        }
+                        else {
+                            return hgvsc;
+                        }
                     }
                 }
             }
         }
-        return null;
+        catch(Exception e) {
+            System.err.println("error resolving: " + hgvsc);
+        }
+        return hgvsc;
     }
 
     public static void main(String[] args) throws IOException, ClassNotFoundException, SQLException {
@@ -113,17 +118,14 @@ public class ResolveToHgvsp {
                     hgvsps.add(hgvsc);
                 }
             }
-            CaseAttributes ca = null;
-            if(!csvRecord.get("SOURCE").contains("[non-EHC case?]")) {
-                ca = caf.getByAccessionNumber(csvRecord.get("ACC_NO"));
-            }
+            CaseAttributes ca = caf.getByAccessionNumber(csvRecord.get("ACC_NO"));
             System.out.println(String.format("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s",
                 csvRecord.get("SOURCE")
                ,csvRecord.get("ORDER_ID")
                ,csvRecord.get("ACC_NO")
-               ,(ca != null ? ca.lastName : "?")
-               ,(ca != null ? ca.empi : "?")
-               ,(ca != null ? ca.mrn : "?")
+               ,(ca != null ? (csvRecord.get("SOURCE").contains("[non-EHC case?]") ? "?-" : "") + ca.lastName : "?")
+               ,(ca != null ? (csvRecord.get("SOURCE").contains("[non-EHC case?]") ? "?-" : "") + ca.empi : "?")
+               ,(ca != null ? (csvRecord.get("SOURCE").contains("[non-EHC case?]") ? "?-" : "") + ca.mrn : "?")
                ,csvRecord.get("PANEL")
                ,csvRecord.get("SIGNOUT_DATE")
                ,csvRecord.get("PRIMARY_TUMOR_TYPE")
